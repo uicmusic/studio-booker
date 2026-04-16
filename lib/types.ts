@@ -30,6 +30,8 @@ export interface Equipment {
   description: string | null
   quantity: number
   available: number
+  /** Set by availability API when checking a time window */
+  availableForSession?: number
   category: string | null
   isActive: boolean
   createdAt: Date

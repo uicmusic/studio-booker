@@ -28,7 +28,13 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await auth();
+  // Stale cookies after NEXTAUTH_SECRET change cause JWT decrypt errors — treat as signed out.
+  let session = null
+  try {
+    session = await auth()
+  } catch {
+    session = null
+  }
 
   return (
     <html lang="en">

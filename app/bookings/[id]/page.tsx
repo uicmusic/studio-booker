@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import Navbar from "@/components/Navbar"
 import { Calendar, Clock, Package, ArrowLeft, Trash2 } from "lucide-react"
 import { format } from "date-fns"
-import { Booking, Equipment } from "@/lib/types"
+import { Booking, Equipment, BookingEquipment } from "@/lib/types"
 
 interface BookingWithDetails extends Booking {
   studio: Studio
@@ -21,16 +21,9 @@ interface Studio {
   location: string | null
   capacity: number | null
   isActive: boolean
-  images: string[] | null
-  createdAt: string
-  updatedAt: string
-}
-
-interface BookingEquipment {
-  id: string
-  equipmentId: string
-  quantity: number
-  equipment: Equipment
+  images: string[]
+  createdAt: Date
+  updatedAt: Date
 }
 
 export default function BookingDetailsPage() {

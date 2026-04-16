@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { Suspense, useState, useEffect, useMemo } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Navbar from "@/components/Navbar"
 import { Calendar, Clock, Package, Plus, Minus, Loader2, ChevronDown, ChevronUp, Search } from "lucide-react"
@@ -16,6 +16,7 @@ interface Equipment {
   name: string
   quantity: number
   available: number
+  availableForSession?: number
   category: string | null
 }
 
@@ -40,7 +41,7 @@ const SESSIONS = [
   },
 ]
 
-export default function NewBookingPage() {
+function NewBookingPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const preselectedStudio = searchParams.get("studio")
@@ -420,5 +421,19 @@ export default function NewBookingPage() {
         </form>
       </main>
     </div>
+  )
+}
+
+export default function NewBookingPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center text-gray-600">
+          Loading…
+        </div>
+      }
+    >
+      <NewBookingPageInner />
+    </Suspense>
   )
 }

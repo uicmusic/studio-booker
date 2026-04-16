@@ -43,27 +43,6 @@ export default async function Home() {
             </p>
           )}
         </div>
-
-        {/* Demo Accounts */}
-        <div className="max-w-2xl mx-auto bg-yellow-50 border border-yellow-200 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-yellow-800 mb-4">
-            Demo Accounts
-          </h3>
-          <div className="grid md:grid-cols-3 gap-4 text-sm">
-            <div className="bg-white p-4 rounded-lg">
-              <p className="font-semibold text-gray-900">Admin</p>
-              <p className="text-gray-600">admin@uic.edu</p>
-            </div>
-            <div className="bg-white p-4 rounded-lg">
-              <p className="font-semibold text-gray-900">Lecturer</p>
-              <p className="text-gray-600">feliks@uic.edu</p>
-            </div>
-            <div className="bg-white p-4 rounded-lg">
-              <p className="font-semibold text-gray-900">Student</p>
-              <p className="text-gray-600">student@uic.edu</p>
-            </div>
-          </div>
-        </div>
       </main>
 
       {/* Footer */}

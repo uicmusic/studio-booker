@@ -1,100 +1,123 @@
-// This is your Prisma schema file,
-// learn more here: https://pris.ly/d/prisma-schema
+// Prisma schema aligned with supabase/migrations (PostgreSQL)
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  STUDENT
+  LECTURER
+  ADMIN
+
+  @@map("user_role")
+}
+
+enum BookingStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+  CANCELLED
+
+  @@map("booking_status")
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  name          String?
-  image         String?
-  role          String    @default("STUDENT")
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  bookings      Booking[]
-  approvedBookings Booking[] @relation("ApprovedBy")
-  
+  id        String   @id @db.Uuid
+  email     String   @unique
+  name      String?
+  image     String?
+  role      UserRole @default(STUDENT)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  bookings         Booking[] @relation("BookingUser")
+  approvedBookings Booking[] @relation("BookingApprovedBy")
+
   @@map("users")
 }
 
 model Studio {
-  id          String    @id @default(cuid())
-  name        String    @unique
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique
   description String?
   location    String?
   capacity    Int?
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  bookings    Booking[]
-  images      String?   // JSON string array
-  
+  isActive    Boolean  @default(true) @map("is_active")
+  images      String[] @default([]) @map("images")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  bookings Booking[]
+
   @@map("studios")
 }
 
 model Equipment {
-  id          String    @id @default(cuid())
-  name        String    @unique
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique
   description String?
-  quantity    Int       @default(0)
-  available   Int       @default(0)
+  quantity    Int      @default(0)
+  available   Int      @default(0)
   category    String?
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  bookings    BookingEquipment[]
-  
-  @@map("equipments")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  bookings BookingEquipment[]
+
+  @@map("equipment")
 }
 
 model Booking {
-  id              String   @id @default(cuid())
-  userId          String
-  studioId        String
-  startDate       DateTime
-  endDate         DateTime
-  purpose         String
-  status          String   @default("PENDING")
-  approvedById    String?
-  approvedBy      User?    @relation("ApprovedBy", fields: [approvedById], references: [id])
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  studio          Studio   @relation(fields: [studioId], references: [id], onDelete: Cascade)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  equipment       BookingEquipment[]
-  returnProofs    ReturnProof[]
-  isOverdue       Boolean  @default(false)
-  autoReturnedAt  DateTime?
-  
+  id             String         @id @default(uuid()) @db.Uuid
+  userId         String         @map("user_id") @db.Uuid
+  studioId       String         @map("studio_id") @db.Uuid
+  startDate      DateTime       @map("start_date") @db.Timestamptz(6)
+  endDate        DateTime       @map("end_date") @db.Timestamptz(6)
+  purpose        String
+  status         BookingStatus  @default(PENDING)
+  approvedById   String?        @map("approved_by_id") @db.Uuid
+  isOverdue      Boolean        @default(false) @map("is_overdue")
+  autoReturnedAt DateTime?      @map("auto_returned_at") @db.Timestamptz(6)
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user       User                 @relation("BookingUser", fields: [userId], references: [id], onDelete: Cascade)
+  approvedBy User?                @relation("BookingApprovedBy", fields: [approvedById], references: [id])
+  studio     Studio               @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  equipment  BookingEquipment[]
+  returnProofs ReturnProof[]
+
   @@map("bookings")
 }
 
 model BookingEquipment {
-  id          String   @id @default(cuid())
-  bookingId   String
-  equipmentId String
+  id          String @id @default(uuid()) @db.Uuid
+  bookingId   String @map("booking_id") @db.Uuid
+  equipmentId String @map("equipment_id") @db.Uuid
   quantity    Int
-  booking     Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  equipment   Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
-  
+
+  booking   Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  equipment Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+
   @@unique([bookingId, equipmentId])
-  @@map("booking_equipments")
+  @@map("booking_equipment")
 }
 
 model ReturnProof {
-  id          String   @id @default(cuid())
-  bookingId   String
-  images      String?  // JSON string array
+  id          String   @id @default(uuid()) @db.Uuid
+  bookingId   String   @map("booking_id") @db.Uuid
+  images      String[] @default([]) @map("images")
   description String?
-  createdAt   DateTime @default(now())
-  booking     Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
   @@map("return_proofs")
 }

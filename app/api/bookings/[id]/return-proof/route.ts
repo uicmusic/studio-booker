@@ -79,7 +79,7 @@ export async function POST(
     const returnProof = await prisma.returnProof.create({
       data: {
         bookingId: id,
-        images: JSON.stringify(imageUrls),
+        images: imageUrls,
         description: description || null,
       },
     })

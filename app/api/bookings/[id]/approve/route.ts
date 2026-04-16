@@ -43,6 +43,7 @@ export async function POST(
       where: { id },
       include: {
         equipment: true,
+        studio: { select: { name: true } },
       },
     })
 
