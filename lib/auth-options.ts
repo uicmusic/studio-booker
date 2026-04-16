@@ -104,62 +104,20 @@ export const authOptions: NextAuthOptions = {
           }
         }
 
-        // 2) Auth rejected — if profile exists, wrong password (or Auth password hash incompatible with SQL inserts).
-        //    SQL-seeded users: run `npm run fix:admin-passwords` once to reset via Admin API.
-        const existingProfile = await prisma.user.findUnique({ where: { email } })
-        if (isDev && existingProfile) {
-          console.error(
-            `[auth] ${email} exists in public.users but signInWithPassword failed. ` +
-            `If created via SQL migration, run: npm run fix:admin-passwords`
-          )
-        }
-        if (existingProfile) {
-          return null
-        }
-
-        // 3) New user: create in Auth; trigger fills public.users (or we poll).
-        const name = (credentials.name as string) || email
-        const role = normalizeRole(credentials.role as string | undefined)
-
-        const { error: createErr } = await supabaseAdmin.auth.admin.createUser({
-          email,
-          password,
-          email_confirm: true,
-          user_metadata: { name, role },
-        })
-
-        if (createErr) {
-          const msg = createErr.message || ""
-          if (
-            msg.toLowerCase().includes("already") ||
-            msg.toLowerCase().includes("registered")
-          ) {
+        // 2) Auth rejected — wrong password, or account doesn't exist.
+        //    Self-registration is disabled; accounts are created by admins only.
+        if (isDev) {
+          const existingProfile = await prisma.user.findUnique({ where: { email } })
+          if (existingProfile) {
             console.error(
-              "[auth] Email already in Supabase Auth but sign-in failed. Reset password in Supabase → Authentication → Users."
+              `[auth] ${email} exists in public.users but signInWithPassword failed. ` +
+              `If created via SQL migration, run: npm run fix:admin-passwords`
             )
           } else {
-            console.error("[auth] createUser", msg)
+            console.error(`[auth] ${email} not found — account must be created by an admin.`)
           }
-          return null
         }
-
-        let created = await prisma.user.findUnique({ where: { email } })
-        for (let i = 0; i < 12 && !created; i++) {
-          await new Promise((r) => setTimeout(r, 150))
-          created = await prisma.user.findUnique({ where: { email } })
-        }
-
-        if (!created) {
-          console.error("[auth] public.users missing after signup")
-          return null
-        }
-
-        return {
-          id: created.id,
-          email: created.email,
-          name: created.name,
-          role: created.role as Role,
-        }
+        return null
       },
     }),
   ],

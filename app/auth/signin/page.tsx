@@ -3,7 +3,7 @@
 import { signIn } from "next-auth/react"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Mail, User, Briefcase, Lock } from "lucide-react"
+import { Mail, Lock } from "lucide-react"
 import Image from "next/image"
 
 /** Drop a bad ?callbackUrl= (e.g. wrong port like 30001) so NextAuth matches this tab. */
@@ -30,8 +30,6 @@ export default function SignIn() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    name: "",
-    role: "STUDENT",
   })
 
   useEffect(() => {
@@ -49,8 +47,6 @@ export default function SignIn() {
       const result = await signIn("credentials", {
         email: formData.email,
         password: formData.password,
-        name: formData.name || formData.email,
-        role: formData.role,
         callbackUrl: origin ? `${origin}/dashboard` : "/dashboard",
         redirect: false,
       })
@@ -59,9 +55,7 @@ export default function SignIn() {
         router.push("/dashboard")
         router.refresh()
       } else {
-        setErrorMessage(
-          "Email atau password salah. Kalau baru setup: di file .env.local pastikan NEXTAUTH_URL sama dengan alamat ini (contoh http://localhost:3000 — jangan sampai salah ketik jadi 30001)."
-        )
+        setErrorMessage("Email atau password salah. Akun harus dibuat terlebih dahulu oleh Admin.")
       }
     } catch (error) {
       console.error("Sign in error:", error)
@@ -146,41 +140,6 @@ export default function SignIn() {
               </div>
             </div>
 
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                Name (Optional)
-              </label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  id="name"
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D94633] focus:border-[#D94633]"
-                  placeholder="Your name"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
-                Role
-              </label>
-              <div className="relative">
-                <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <select
-                  id="role"
-                  value={formData.role}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D94633] focus:border-[#D94633]"
-                >
-                  <option value="STUDENT">Student</option>
-                  <option value="LECTURER">Lecturer</option>
-                </select>
-              </div>
-            </div>
-
             <button
               type="submit"
               disabled={isLoading}
@@ -191,7 +150,7 @@ export default function SignIn() {
           </form>
 
           <p className="mt-4 text-xs text-gray-500 text-center">
-            Use your Supabase Auth email and password. New users are registered on first successful sign-in.
+            Akun hanya bisa dibuat oleh Admin. Hubungi admin UIC Music jika belum punya akses.
           </p>
         </div>
       </div>

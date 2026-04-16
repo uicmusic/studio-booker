@@ -4,7 +4,7 @@ import { requireRole } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import Navbar from "@/components/Navbar"
 import ApproveButtons from "@/components/ApproveButtons"
-import { Calendar, Clock, CheckCircle, XCircle, AlertCircle, Package, Building } from "lucide-react"
+import { Calendar, Clock, CheckCircle, XCircle, AlertCircle, Package, Building, Users } from "lucide-react"
 import { format } from "date-fns"
 import Link from "next/link"
 
@@ -153,6 +153,34 @@ export default async function AdminDashboard() {
             </div>
             <p className="text-gray-600">Equipment</p>
           </div>
+        </div>
+
+        {/* Quick Links */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+          <Link
+            href="/admin/users"
+            className="flex items-center gap-4 bg-white p-5 rounded-lg shadow-sm border hover:shadow-md transition-shadow"
+          >
+            <div className="p-3 bg-indigo-100 rounded-lg">
+              <Users className="w-6 h-6 text-indigo-600" />
+            </div>
+            <div>
+              <p className="font-semibold text-gray-900">Manage Users</p>
+              <p className="text-sm text-gray-500">Add or remove student & lecturer accounts</p>
+            </div>
+          </Link>
+          <Link
+            href="/inventory"
+            className="flex items-center gap-4 bg-white p-5 rounded-lg shadow-sm border hover:shadow-md transition-shadow"
+          >
+            <div className="p-3 bg-purple-100 rounded-lg">
+              <Package className="w-6 h-6 text-purple-600" />
+            </div>
+            <div>
+              <p className="font-semibold text-gray-900">Manage Inventory</p>
+              <p className="text-sm text-gray-500">Add, edit, or remove equipment</p>
+            </div>
+          </Link>
         </div>
 
         {/* Pending Bookings */}
