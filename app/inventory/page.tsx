@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"
+
 import Navbar from "@/components/Navbar"
 import { prisma } from "@/lib/prisma"
 import { Package } from "lucide-react"
