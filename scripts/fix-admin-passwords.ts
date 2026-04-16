@@ -49,7 +49,7 @@ async function main() {
     process.exit(1)
   }
 
-  const userMap = new Map(data.users.map((u) => [u.email ?? "", u.id]))
+  const userMap = new Map(data.users.map((u): [string, string] => [u.email ?? "", u.id]))
 
   for (const { email, password, name, role } of ADMINS) {
     const existingAuthId = userMap.get(email)
