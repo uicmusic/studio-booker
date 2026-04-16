@@ -2,9 +2,16 @@ export const dynamic = "force-dynamic"
 
 import Navbar from "@/components/Navbar"
 import { prisma } from "@/lib/prisma"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth-options"
 import { Package } from "lucide-react"
+import InventoryAdmin from "@/components/InventoryAdmin"
 
 export default async function InventoryPage() {
+  const session = await getServerSession(authOptions)
+  const userRole = (session?.user as any)?.role
+  const isAdmin = userRole === "ADMIN"
+
   // Get today's date range for session-based availability
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -22,7 +29,7 @@ export default async function InventoryPage() {
     where: {
       status: "APPROVED",
       startDate: { gte: today },
-      endDate: { lte: new Date(todayEnd.getTime() + (24 * 60 * 60 * 1000)) }, // Include tomorrow for overnight sessions
+      endDate: { lte: new Date(todayEnd.getTime() + 24 * 60 * 60 * 1000) },
     },
     include: {
       equipment: true,
@@ -35,10 +42,9 @@ export default async function InventoryPage() {
     equipmentAvailability[equip.id] = equip.available
   })
 
-  // Subtract equipment that's currently in use (today's approved bookings)
   todayBookings.forEach((booking) => {
     booking.equipment.forEach((be) => {
-      if (equipmentAvailability[be.equipmentId]) {
+      if (equipmentAvailability[be.equipmentId] !== undefined) {
         equipmentAvailability[be.equipmentId] -= be.quantity
       }
     })
@@ -59,7 +65,10 @@ export default async function InventoryPage() {
 
   // Stats
   const totalItems = equipments.reduce((sum, e) => sum + e.quantity, 0)
-  const availableItems = Object.values(equipmentAvailability).reduce((sum, a) => sum + a, 0)
+  const availableItems = Object.values(equipmentAvailability).reduce(
+    (sum, a) => sum + Math.max(0, a),
+    0
+  )
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -68,7 +77,9 @@ export default async function InventoryPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Inventory</h1>
-          <p className="text-gray-600 mt-1">View all available equipment and tools</p>
+          <p className="text-gray-600 mt-1">
+            {isAdmin ? "Manage equipment and tools" : "View all available equipment and tools"}
+          </p>
         </div>
 
         {/* Stats Cards */}
@@ -104,80 +115,8 @@ export default async function InventoryPage() {
           </div>
         </div>
 
-        {/* Equipment by Category */}
-        <div className="space-y-6">
-          {Object.entries(equipmentByCategory).map(([category, items]) => (
-            <div key={category} className="bg-white rounded-lg shadow-sm border overflow-hidden">
-              <div className="px-6 py-4 bg-gray-50 border-b">
-                <h2 className="text-xl font-semibold text-gray-900">{category}</h2>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Equipment Name
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Description
-                      </th>
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Available Today
-                      </th>
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Total
-                      </th>
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {items.map((equip: any) => (
-                      <tr key={equip.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <p className="text-sm font-medium text-gray-900">{equip.name}</p>
-                        </td>
-                        <td className="px-6 py-4">
-                          <p className="text-sm text-gray-500">{equip.description || "-"}</p>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                          <p className="text-sm font-medium text-green-600">{equip.realTimeAvailable}</p>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                          <p className="text-sm text-gray-600">{equip.quantity}</p>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {equip.realTimeAvailable === 0 ? (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                              In Use Today
-                            </span>
-                          ) : equip.realTimeAvailable < equip.quantity ? (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                              Partially Available
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                              Available
-                            </span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {equipments.length === 0 && (
-          <div className="text-center py-16 bg-white rounded-lg border">
-            <Package className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No equipment yet</h3>
-            <p className="text-gray-600">Equipment inventory is empty</p>
-          </div>
-        )}
+        {/* Equipment table — admin sees Add/Edit/Delete actions */}
+        <InventoryAdmin equipmentByCategory={equipmentByCategory} isAdmin={isAdmin} />
       </main>
     </div>
   )
