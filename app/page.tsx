@@ -2,7 +2,7 @@ import Navbar from "@/components/Navbar";
 import { auth } from "@/lib/next-auth";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, LogIn } from "lucide-react";
 
 export default async function Home() {
   const session = await auth();
@@ -38,9 +38,13 @@ export default async function Home() {
               <ArrowRight className="w-5 h-5" />
             </Link>
           ) : (
-            <p className="text-gray-500">
-              Login to start booking studios and equipment
-            </p>
+            <Link
+              href="/auth/signin"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-[#D94633] text-white text-lg font-medium rounded-lg hover:bg-[#c73d2b] transition-colors"
+            >
+              <LogIn className="w-5 h-5" />
+              Sign In
+            </Link>
           )}
         </div>
       </main>

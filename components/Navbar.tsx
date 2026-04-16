@@ -116,12 +116,20 @@ export default function Navbar() {
 
           {/* Mobile menu button */}
           <div className="flex lg:hidden items-center gap-2">
-            {session && (
+            {session ? (
               <div className="flex items-center gap-2 bg-gray-100 px-2 py-1 rounded-full">
                 <span className="text-xs bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full">
                   {userRole}
                 </span>
               </div>
+            ) : (
+              <button
+                onClick={() => signIn()}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#D94633] text-white text-sm font-medium rounded-md hover:bg-[#c73d2b] transition-colors"
+              >
+                <LogIn className="w-4 h-4" />
+                Login
+              </button>
             )}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
